@@ -1,0 +1,80 @@
+version: "3.9"
+
+networks:
+  default:
+    attachable: true
+    driver: ${PROJECT_NETWORKS_DRIVER}
+  traefik-public:
+    external: true
+
+volumes:
+  postgres-data: {}
+
+x-app-environment: &app-environment
+  # https://xdebug.org/docs/step_debug
+  # https://xdebug.org/docs/all_settings#mode [BETTER MOVE TO DOTENV]
+  XDEBUG_CONFIG: "output_dir=/tmp"
+  # [BETTER MOVE TO DOTENV]
+  XDEBUG_TRIGGER: 1
+  PHP_IDE_CONFIG: ${PHP_IDE_CONFIG}
+  APP_ENV: dev
+  COMPOSER_MEMORY_LIMIT: 2G
+  DOCKER_BUILDKIT: ${DOCKER_BUILDKIT}
+
+services:
+  nginx:
+    build:
+      context: .
+      target: local
+      dockerfile: docker/nginx/Dockerfile
+      args:
+        - TZ=UTC
+        - NGINX_VERSION=1.23.3
+    volumes:
+      - ./src/public:/var/www/html/public
+    networks:
+      - default
+      - traefik-public
+    restart: always
+    depends_on:
+      - app
+    labels:
+      - traefik.enable=true
+
+      - traefik.http.routers.backend-http.rule=Host(`${APP_HOST}`)
+      - traefik.http.routers.backend-http.entrypoints=http
+
+  &app-name app:
+    build:
+      context: .
+      dockerfile: docker/app-fpm/Dockerfile
+      target: local
+      args:
+        PHP_VERSION: 8.2.15
+        TZ: UTC
+        COMPOSER_VERSION: 2.5.2
+        XDEBUG_VERSION: 3.2.0
+        USER_UID: ${USER_UID:-1000}
+    command: ["php-fpm"]
+    stop_signal: SIGTERM
+    user: www-data
+    hostname: *app-name
+    volumes:
+      - ./src:/var/www/html
+      - ~/.ssh:/var/www/.ssh
+    environment:
+      <<: *app-environment
+      # https://xdebug.org/docs/all_settings#mode [BETTER MOVE TO DOTENV]
+      XDEBUG_MODE: ${XDEBUG_MODE}
+    restart: always
+    depends_on:
+      - postgres
+
+  postgres:
+    image: library/postgres:16.2-alpine
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: textmagic
+      POSTGRES_PASSWORD: textmagic
+    restart: always

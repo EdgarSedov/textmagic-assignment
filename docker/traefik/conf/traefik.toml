@@ -1,0 +1,120 @@
+[global]
+checkNewVersion = true
+sendAnonymousUsage = false
+
+[entryPoints]
+[entryPoints.http]
+address = ":80"
+
+[entryPoints.https]
+address = ":443"
+
+################################################################
+# Traefik logs configuration
+################################################################
+[log]
+
+# Log level
+#
+# Optional
+# Default: "ERROR"
+#
+# level = "DEBUG"
+
+# Sets the filepath for the traefik log. If not specified, stdout will be used.
+# Intermediate directories are created if necessary.
+#
+# Optional
+# Default: os.Stdout
+#
+# filePath = "log/traefik.log"
+
+# Format is either "json" or "common".
+#
+# Optional
+# Default: "common"
+#
+# format = "json"
+
+################################################################
+# Access logs configuration
+################################################################
+# [accessLog]
+
+# Sets the file path for the access log. If not specified, stdout will be used.
+# Intermediate directories are created if necessary.
+#
+# Optional
+# Default: os.Stdout
+#
+# filePath = "/path/to/log/log.txt"
+
+# Format is either "json" or "common".
+#
+# Optional
+# Default: "common"
+#
+# format = "json"
+
+################################################################
+# API and dashboard configuration
+################################################################
+
+# Enable API and dashboard
+[api]
+
+# Enable the API in insecure mode
+#
+# Optional
+# Default: false
+#
+insecure = true
+
+# Enabled Dashboard
+#
+# Optional
+# Default: true
+#
+# dashboard = false
+
+################################################################
+# Ping configuration
+################################################################
+
+# Enable ping
+[ping]
+
+# Name of the related entry point
+#
+# Optional
+# Default: "traefik"
+#
+# entryPoint = "traefik"
+
+
+[providers]
+
+################################################################
+# Docker configuration backend
+################################################################
+
+# Enable Docker configuration backend
+[providers.docker]
+endpoint = "unix:///var/run/docker.sock"
+
+# Default host rule. [For a given service, if no routing rule was defined by a tag, it is defined by this instead.]
+#
+# Optional
+# Default: "Host(`{{ normalize .Name }}`)"
+#
+defaultRule = "Host(`{{ normalize .Name }}.local`)"
+
+# Expose containers by default in traefik
+#
+# Optional
+# Default: true
+#
+exposedByDefault = false
+
+network = "traefik-public"
+httpClientTimeout = 60
