@@ -1,0 +1,25 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Tests{% endblock %}
+
+{% block stylesheets %}
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+{% endblock %}
+
+{% block body %}
+    <div class="container mt-5">
+        <h2 class="mb-4">Available Tests</h2>
+        <div class="list-group">
+            {% for questionnaire in questionnaires %}
+                <form
+                    action="{{ path('questionnaires_attempt', {id: questionnaire.id}) }}"
+                    method="post"
+                    class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                >
+                    {{ questionnaire.title }}
+                    <button class="btn btn-primary">Start</button>
+                </form>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}
